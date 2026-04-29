@@ -1,0 +1,39 @@
+{
+  "name": "imarc/craft-migrate-hyper",
+  "description": "Provides console commands to migrate verbb hyper fields to craft native fields",
+  "type": "craft-plugin",
+  "license": "mit",
+  "support": {
+    "email": "info@imarc.com"
+  },
+  "require": {
+    "php": ">=8.2",
+    "craftcms/cms": "^5.0"
+  },
+  "require-dev": {
+    "craftcms/phpstan": "dev-main",
+    "phpstan/phpstan": "^1.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "imarc\\migratehyper\\": "src/"
+    }
+  },
+  "extra": {
+    "handle": "migratehyper",
+    "name": "Migrate Hyper",
+    "developer": "Linnea Hartsuyker",
+    "documentationUrl": "",
+    "class": "imarc\\migratehyper\\MigrateHyper"
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2.0"
+    },
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  }
+}
