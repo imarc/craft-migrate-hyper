@@ -7,8 +7,6 @@ use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\fields\Link;
-use Mpdf\Tag\P;
-use yii\console\Controller;
 
 class MigrateHyperField extends Migration{
     // Properties
@@ -32,8 +30,7 @@ class MigrateHyperField extends Migration{
         App::maxPowerCaptain();
         $linkFields = $this->getFields();
         $fieldsService = Craft::$app->getFields();
-        $linkField = $fieldsService->getFieldById(560);
-        //$fieldConfig = $fieldsService->createFieldConfig($linkField);
+        $multipleLinks = [];
 
         if (!count($linkFields)) {
             echo "$this->fieldHandle does not exist or is not a hyper field \n\n";
@@ -41,105 +38,106 @@ class MigrateHyperField extends Migration{
         }
 
         foreach($linkFields as $field) {
-            //if ($field["id"] == 1514) {
-                $settings = Json::decode($field['settings']);
-                //echo json_encode($settings) . "\n\n";
-                echo "Converting " . $field["handle"] . "\n\n";
-                $types = [];
-                $typeSettings = [];
-                $showLabelField = false;
-                foreach ($settings["linkTypes"] as $linkType) {
-                    if ($linkType["enabled"]) {
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Asset") {
-                            $types[] = "asset";
-                            $typeSettings["asset"] = [
+            $settings = Json::decode($field['settings']);
+            if ($settings['multipleLinks']) {
+                $multipleLinks[] = $field["handle"];
+                continue;
+            }
+            echo "Converting " . $field["handle"] . "\n\n";
+            $types = [];
+            $typeSettings = [];
+            $showLabelField = false;
+            foreach ($settings["linkTypes"] as $linkType) {
+                if ($linkType["enabled"]) {
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Asset") {
+                        $types[] = "asset";
+                        $typeSettings["asset"] = [
+                            "sources" => $linkType["sources"]
+                        ];
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Category") {
+                        $types[] = "category";
+                        $typeSettings["category"] = [
                                 "sources" => $linkType["sources"]
-                            ];
+                        ];
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Custom") {
+                        if (!in_array("url", $types)) {
+                            $types[] = "url";
                         }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Category") {
-                            $types[] = "category";
-                            $typeSettings["category"] = [
-                                    "sources" => $linkType["sources"]
-                            ];
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Custom") {
-                            if (!in_array("url", $types)) {
-                                $types[] = "url";
-                            }
-                            $typeSettings["url"] = [
-                                    "allowRootRelativeUrls" => 1,
-                                    "allowAnchors" => 1,
-                                    "allowCustomSchemes" => 1
-                            ];
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Email") {
-                            $types[] = "email";
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Entry") {
-                            $types[] = "entry";
-                            $typeSettings["entry"] = [
-                                "sources" => $linkType["sources"]
-                            ];
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Phone") {
-                            $types[] = "tel";
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\Url") {
-                            if (!in_array("url", $types)) {
-                                $types[] = "url";
-                            }
-                        }
-                        if ($linkType["type"] == "verbb\\hyper\\links\\FormieForm") {
-                            $types[] = "form";
-                            $typeSettings["form"] = [
-                                "sources" => $linkType["sources"]
-                            ];
-                        }
-                        if (!$showLabelField) {
-                            if (array_key_exists("layoutConfig", $linkType) &&
-                                array_key_exists("tabs", $linkType["layoutConfig"])) {
-                                foreach ($linkType["layoutConfig"]["tabs"] as $tab) {
-                                    if (array_key_exists("elements", $tab)) {
-                                        foreach ($tab["elements"] as $el) {
-                                            if (array_key_exists("attribute", $el) && $el["attribute"] == "linkText") {
-                                                $showLabelField = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if ($showLabelField) {
-                                        break;
-                                    }
-                                }
-                            }                                
+                        $typeSettings["url"] = [
+                                "allowRootRelativeUrls" => 1,
+                                "allowAnchors" => 1,
+                                "allowCustomSchemes" => 1
+                        ];
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Email") {
+                        $types[] = "email";
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Entry") {
+                        $types[] = "entry";
+                        $typeSettings["entry"] = [
+                            "sources" => $linkType["sources"]
+                        ];
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Phone") {
+                        $types[] = "tel";
+                    }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\Url") {
+                        if (!in_array("url", $types)) {
+                            $types[] = "url";
                         }
                     }
+                    if ($linkType["type"] == "verbb\\hyper\\links\\FormieForm") {
+                        $types[] = "form";
+                        $typeSettings["form"] = [
+                            "sources" => $linkType["sources"]
+                        ];
+                    }
+                    if (!$showLabelField) {
+                        if (array_key_exists("layoutConfig", $linkType) &&
+                            array_key_exists("tabs", $linkType["layoutConfig"])) {
+                            foreach ($linkType["layoutConfig"]["tabs"] as $tab) {
+                                if (array_key_exists("elements", $tab)) {
+                                    foreach ($tab["elements"] as $el) {
+                                        if (array_key_exists("attribute", $el) && $el["attribute"] == "linkText") {
+                                            $showLabelField = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if ($showLabelField) {
+                                    break;
+                                }
+                            }
+                        }                                
+                    }
                 }
+            }
 
-                // echo json_encode($types) . "\n\n";
-                // echo json_encode($typeSettings) . "\n\n";
+        
+            $newFieldConfig = $field;
+            unset($newFieldConfig['type'], $newFieldConfig['settings']);
+
+
+            $newFieldConfig["showLabelField"] = $showLabelField;
+            $newFieldConfig["advancedFields"] = [
+                    "target"
+                ];
+
             
-                $newFieldConfig = $field;
-                unset($newFieldConfig['type'], $newFieldConfig['settings']);
+            $newFieldConfig['typeSettings'] = $typeSettings;
+            $newFieldConfig['types'] = $types;
 
-
-                $newFieldConfig["showLabelField"] = $showLabelField;
-                $newFieldConfig["advancedFields"] = [
-                        "target"
-                    ];
-
-                
-                $newFieldConfig['typeSettings'] = $typeSettings;
-                $newFieldConfig['types'] = $types;
-                //echo json_encode($newFieldConfig) . "\n\n";
-
-                
-                $newField = new Link($newFieldConfig);
-                if (!$fieldsService->saveField($newField)) {
-                    echo "Failed to convert $this->fieldHandle \n\n";
-                }
             
-            //}
+            $newField = new Link($newFieldConfig);
+            if (!$fieldsService->saveField($newField)) {
+                echo "Failed to convert $this->fieldHandle \n\n";
+            }
+            
+        }
+        if (count($multipleLinks)) {
+            echo "The following fields contained multiple links and could not be converted: " . json_encode($multipleLinks) . "\n\n";
         }
         return true;
     }

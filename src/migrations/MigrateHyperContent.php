@@ -2,22 +2,17 @@
 namespace imarc\migratehyper\migrations;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\base\FieldInterface;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\helpers\App;
-use craft\helpers\Console;
 use craft\helpers\Json;
 use craft\helpers\Db;
 use craft\fields\Link;
 
 use yii\base\InvalidArgumentException;
-use yii\console\Controller;
-use yii\helpers\Markdown;
-
 class MigrateHyperContent extends Migration{
 
     public bool $resaveFields = true;
@@ -62,14 +57,11 @@ class MigrateHyperContent extends Migration{
             return;
         }
         foreach ($this->fields as $fieldData) {
-            //if ($fieldData['handle'] == 'partnerUrl') {
                 echo "Preparing to migrate field “{$fieldData['handle']}” ({$fieldData['uid']}) content."  . PHP_EOL;
 
                 // Fetch the field model because we'll need it later
                 $field = Craft::$app->getFields()->getFieldById($fieldData['id']);
 
-                $countOuter = 0;
-                $countInner = 0;
 
                 if ($field) {
                     // Handle global field content
@@ -117,21 +109,12 @@ class MigrateHyperContent extends Migration{
                                         }
                                     }
                                 }
-                                // $countInner++;
-                                // if ($countInner > 10) {
-                                //     break;
-                                // }
                             }
-                            // $countOuter++;
-                            // if ($countOuter > 2) {
-                            //     break;
-                            // }
                         }
                     }
                 }
 
                 echo "    > Field “{$field['handle']}” content migrated." . PHP_EOL;
-            //}
         }
     }
 
@@ -143,9 +126,7 @@ class MigrateHyperContent extends Migration{
             if (str_contains($oldType, 'verbb\\hyper')) {
                 if (is_array($oldSettings) && array_key_exists("linkValue", $oldSettings[0])) {
                     $settings = [];
-                    // $advanced = Json::decode($oldSettings['payload']);
-                    // echo "$advanced = " . json_encode($advanced) . PHP_EOL;
-                    //$settings["target"] = $advanced['target'] ?? '';
+
 
                     if ($oldType == "verbb\\hyper\\links\\Asset") {
                         $settings["type"] = 'asset';
@@ -187,8 +168,6 @@ class MigrateHyperContent extends Migration{
                             $settings["target"] = "_blank";
                         }
                     }
-
-                    //echo Json::encode($settings) . PHP_EOL;
 
                     return $settings;
                 }
