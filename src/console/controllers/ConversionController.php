@@ -10,6 +10,7 @@ use yii\console\Controller;
 class ConversionController extends Controller
 {
     // run with command php craft migratehyper/conversion
+    public $allowAnonymous = true;
 
     public function actionIndex() {        
 

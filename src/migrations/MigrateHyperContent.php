@@ -114,7 +114,11 @@ class MigrateHyperContent extends Migration{
                     }
                 }
 
-                echo "    > Field “{$field['handle']}” content migrated." . PHP_EOL;
+                if ($field) {
+                    echo "    > Field “{$field['handle']}” content migrated." . PHP_EOL;
+                }
+
+                
         }
     }
 
